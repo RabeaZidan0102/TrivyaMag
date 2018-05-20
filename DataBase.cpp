@@ -3,11 +3,14 @@
 #include <sstream>
 #include <time.h>
 #include <algorithm> 
+#include <chrono>
+#include <ctime>
 
 #define RETRIVING_ERROR "ERROR, while retriving information"
 
 using std::exception;
 using std::stringstream;
+using std::chrono::system_clock;
 
 unordered_map<string, vector<string>> results;
 
@@ -16,7 +19,7 @@ DataBase::DataBase()
 	int rc;
 	bool ans;
 	rc = sqlite3_open("trivia.db", &_db);
-	/*
+	
 	try
 	{
 		if (rc != SQLITE_OK)
@@ -44,12 +47,11 @@ DataBase::DataBase()
 		}
 
 	}
-
 	catch (exception& e)
 	{
 		cout << e.what() << endl;
 	}
-	*/
+	
 }
 
 DataBase::~DataBase()
@@ -127,7 +129,6 @@ vector<Question*> DataBase::initQuestion(int numberOfQustions)
 		{
 			throw exception(RETRIVING_ERROR);
 		}
-
 		else
 		{
 			for (questionCounter = 0; questionCounter < numberOfQustions; questionCounter++)
@@ -143,7 +144,6 @@ vector<Question*> DataBase::initQuestion(int numberOfQustions)
 			}
 		}
 	}
-
 	catch (exception& e)
 	{
 		cout << e.what() << endl;
@@ -186,6 +186,57 @@ vector<string> DataBase::getBestScores()
 	}
 }
 
+
+int DataBase::insertNewGame()
+{
+	int rc;
+	stringstream addingNewGame, gettingTheID;
+	int returnedValue = NULL;
+	
+	system_clock::time_point p = system_clock::now();
+
+	std::time_t t = system_clock::to_time_t(p);
+
+	addingNewGame << "insert into games values( 1, " << std::ctime(&t) << ")";
+	try
+	{
+		rc = sqlite3_exec(_db, addingNewGame.str().c_str(), NULL, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			throw("we have a problem!");
+		}
+	}
+	catch (exception &e)
+	{
+		cout << e.what() << endl;
+
+	}
+
+	gettingTheID << "select id from t_games WHERE start_time = " << std::ctime(&t) << " AND status = 1";
+
+	try
+	{
+		rc = sqlite3_exec(_db, gettingTheID.str().c_str(), callbackPersonalStatus, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			throw(RETRIVING_ERROR);
+		}
+		else
+		{
+			
+		}
+	}
+	catch (exception &e)
+	{
+		cout << e.what() << endl;
+	}
+	
+
+	return returnedValue;
+}
+
+
+
 int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azCol)
 {
 	int i;
@@ -210,6 +261,29 @@ int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azC
 }
 
 int DataBase::callbackBestScore(void* notUsed, int argc, char** argv, char** azCol)
+{
+	int i;
+
+	for (i = 0; i < argc; i++)
+	{
+		auto it = results.find(azCol[i]);
+		if (it != results.end())
+		{
+			it->second.push_back(argv[i]);
+		}
+		else
+		{
+			pair<string, vector<string>> p;
+			p.first = azCol[i];
+			p.second.push_back(argv[i]);
+			results.insert(p);
+		}
+	}
+
+	return 0;
+}
+
+int DataBase::callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol)
 {
 	int i;
 
