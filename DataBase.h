@@ -2,10 +2,14 @@
 
 #include "Question.h"
 #include <vector>
+#include <unordered_map>
+#include "sqlite3.h"
 
 using std::vector;
 using std::cout;
 using std::endl;
+using std::unordered_map;
+using std::pair;
 
 class DataBase
 {
@@ -25,6 +29,8 @@ public:
 
 private:
 	sqlite3 * _db;
+	char* zErrMsg = 0;
+	unordered_map<string, vector<string>> results;
 
 	static int callbackCount(void*, int, char**, char**);
 	static int callbackQuestions(void*, int, char**, char**);
