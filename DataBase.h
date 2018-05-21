@@ -30,6 +30,7 @@ public:
 private:
 	sqlite3 * _db;
 	char* zErrMsg = 0;
+	int _currentGameID;
 
 	static int callbackCount(void*, int, char**, char**);
 	static int callbackQuestions(void*, int, char**, char**);

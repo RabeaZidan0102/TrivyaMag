@@ -5,19 +5,24 @@
 #include <algorithm> 
 #include <chrono>
 #include <ctime>
+#include <map>
 
-#define RETRIVING_ERROR "ERROR, while retriving information"
+#define RETRIVING_ERROR "ERROR, while retriving information."
+#define INSERTING_ERROR "ERROR, while inserting information."
 
 using std::exception;
 using std::stringstream;
 using std::chrono::system_clock;
+using std::ctime;
+using std::map;
 
 unordered_map<string, vector<string>> results;
+
+#pragma warning(disable : 4996)
 
 DataBase::DataBase()
 {
 	int rc;
-	bool ans;
 	rc = sqlite3_open("trivia.db", &_db);
 	
 	try
@@ -30,7 +35,6 @@ DataBase::DataBase()
 
 		else
 		{
-			int rc;
 			stringstream gamesTable, playersAnswersTable, questionsTable, usersTable;
 
 			gamesTable << "create table t_games(id integer primary key autoincrement, status int, start_time datetime, end_time datetime)";
@@ -117,7 +121,7 @@ vector<Question*> DataBase::initQuestion(int numberOfQustions)
 
 	try
 	{
-		unsigned int questionCounter = 0;
+		int questionCounter = 0;
 		int rc;
 		string question, correctAnswer, answer2, answer3, answer4;
 		stringstream questions;
@@ -149,17 +153,20 @@ vector<Question*> DataBase::initQuestion(int numberOfQustions)
 		cout << e.what() << endl;
 		return _questionsVector;
 	}
+	return _questionsVector;
 }
 
 vector<string> DataBase::getBestScores()
 {
 	int rc;
 	stringstream getIsCorrectQuestion;
+	vector<string> _allOFPlayersWithIsCorrectAnswer;
 	vector<string> _bestScoreUsernames;
 
 	try
 	{
-		getIsCorrectQuestion << "SELECT username, COUNT(*) from t_players_answers WHERE is_correct = 1 LIMIT 3";
+		// we have a vector of 
+		getIsCorrectQuestion << "SELECT username from t_players_answers WHERE is_correct = 1";
 		rc = sqlite3_exec(_db, getIsCorrectQuestion.str().c_str(), callbackBestScore, 0, &zErrMsg);
 		
 		if (rc != SQLITE_OK)
@@ -168,13 +175,47 @@ vector<string> DataBase::getBestScores()
 		}
 		else
 		{
-			int i = 0;
+			for (unsigned int i = 0; i < results["username"].size(); i++)
+			{
+				_allOFPlayersWithIsCorrectAnswer.push_back(results["username"][i]);
+			}
 
-			//while (i < results[].size())
-			//{
-				//_bestScoreUsernames
-			//}
+			// string username, number of repetead time of the names
+			map<string, int> usernamesCommon;
+			map<string, int>::iterator it;
 
+			for (unsigned int i = 0; i < results["username"].size(); i++)
+			{
+				usernamesCommon.insert(pair<string, int>(_allOFPlayersWithIsCorrectAnswer[i], 0));
+				for (it = usernamesCommon.begin(); it != usernamesCommon.end(); ++it)
+				{
+					if (it->first == _allOFPlayersWithIsCorrectAnswer[i])
+					{
+						int c = usernamesCommon[it->first];
+						usernamesCommon[it->first] = c + 1;
+					}
+				}
+				
+			}
+			vector<std::pair<std::string, int>> topThree(3);
+			partial_sort_copy(usernamesCommon.begin(), usernamesCommon.end(), topThree.begin(), topThree.end(),
+				[](std::pair<const std::string, int> const& l,
+					std::pair<const std::string, int> const& r)
+			{
+				return l.second > r.second;
+			});
+
+			try
+			{
+				_bestScoreUsernames.push_back(topThree[0].first);
+				_bestScoreUsernames.push_back(topThree[1].first);
+				_bestScoreUsernames.push_back(topThree[2].first);
+			}
+			catch (exception& e)
+			{
+				cout << e.what() << endl;
+			}
+			
 			return _bestScoreUsernames;
 		}
 
@@ -184,55 +225,49 @@ vector<string> DataBase::getBestScores()
 		cout << e.what() << endl;
 		return _bestScoreUsernames;
 	}
+	return _bestScoreUsernames;
 }
 
+vector<string> DataBase::getPersonalStatus()
+{
+	vector<string> personalStatus;
+	stringstream getStatus;
+
+	getStatus << ""
+
+
+
+	return vector<string>(personalStatus);
+}
 
 int DataBase::insertNewGame()
 {
 	int rc;
 	stringstream addingNewGame, gettingTheID;
-	int returnedValue = NULL;
 	
-	system_clock::time_point p = system_clock::now();
+	time_t timeNow = time(0);
+	string date = ctime(&timeNow);
 
-	std::time_t t = system_clock::to_time_t(p);
-
-	addingNewGame << "insert into games values( 1, " << std::ctime(&t) << ")";
+	addingNewGame << "insert into t_games values(" << 0 << ", " << date << ", NULL)";
 	try
 	{
 		rc = sqlite3_exec(_db, addingNewGame.str().c_str(), NULL, 0, &zErrMsg);
 		if (rc != SQLITE_OK)
 		{
-			throw("we have a problem!");
-		}
-	}
-	catch (exception &e)
-	{
-		cout << e.what() << endl;
-
-	}
-
-	gettingTheID << "select id from t_games WHERE start_time = " << std::ctime(&t) << " AND status = 1";
-
-	try
-	{
-		rc = sqlite3_exec(_db, gettingTheID.str().c_str(), callbackPersonalStatus, 0, &zErrMsg);
-		if (rc != SQLITE_OK)
-		{
-			throw(RETRIVING_ERROR);
+			throw exception(INSERTING_ERROR);
 		}
 		else
 		{
-			
+			_currentGameID++;
+			return _currentGameID;
 		}
+
 	}
 	catch (exception &e)
 	{
 		cout << e.what() << endl;
 	}
-	
-
-	return returnedValue;
+	return _currentGameID;
 }
 
 
