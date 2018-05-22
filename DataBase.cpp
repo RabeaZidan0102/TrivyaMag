@@ -5,10 +5,12 @@
 #include <algorithm> 
 #include <chrono>
 #include <ctime>
+#include <string>
 #include <map>
 
 #define RETRIVING_ERROR "ERROR, while retriving information."
 #define INSERTING_ERROR "ERROR, while inserting information."
+#define UPDATING_ERROR "ERROR, IN UPDATING."
 
 using std::exception;
 using std::stringstream;
@@ -228,14 +230,66 @@ vector<string> DataBase::getBestScores()
 	return _bestScoreUsernames;
 }
 
-vector<string> DataBase::getPersonalStatus()
+vector<string> DataBase::getPersonalStatus(string username)
 {
 	vector<string> personalStatus;
-	stringstream getStatus;
+	stringstream getNumberOfGames, numberOfIsCorrectAnswers;
+	int rc;
 
-	getStatus << ""
+	try
+	{
+		// learning a new this is sqlite3, "sqlite3_stmt" and this this is very good...
 
+		string getStatus = "SELECT SUM(CASE WHEN is_correct IS NOT 0 THEN 1 ELSE 0 END) AS column1_count, MAX(game_id) AS column2_count, SUM(CASE WHEN question_id IS NOT NULL THEN 1 ELSE 0 END) AS column3_count, AVG(answer_time) AS column4_count FROM t_players_answers WHERE username = '" + username + "';";
+		sqlite3_stmt *stmt;
 
+		if (sqlite3_prepare_v2(this->_db, getStatus.c_str(), strlen(getStatus.c_str()) + 1, &stmt, NULL) != SQLITE_OK)
+		{
+			throw exception(RETRIVING_ERROR);
+		}
+
+		while (1)
+		{
+			int s;
+			s = sqlite3_step(stmt);
+
+			if (s == SQLITE_ROW)
+			{
+				string correctAnswers = (char*)sqlite3_column_text(stmt, 0);
+				int correctAnswersCount = atoi(correctAnswers.c_str());
+				string gamesCount = (char*)sqlite3_column_text(stmt, 1);
+				string questionsCount = (char*)sqlite3_column_text(stmt, 2);
+				string avgTime = (char*)sqlite3_column_text(stmt, 3);
+				int avargeTime = atoi(avgTime.c_str());
+				string wrongAnswers = std::to_string(atoi(questionsCount.c_str()) - correctAnswersCount);
+				
+				personalStatus.push_back(gamesCount);
+				personalStatus.push_back(correctAnswers);
+				personalStatus.push_back(wrongAnswers);
+				personalStatus.push_back(avgTime.substr(0, 4));
+			}
+
+			else if (s == SQLITE_DONE)
+			{
+				break;
+			}
+
+			else
+			{
+				sqlite3_finalize(stmt);
+				throw exception(RETRIVING_ERROR);
+			}
+		}
+
+		sqlite3_finalize(stmt);
+		return personalStatus;
+	}
+
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+		return personalStatus;
+	}
 
 	return vector<string>(personalStatus);
 }
@@ -270,7 +324,77 @@ int DataBase::insertNewGame()
 	return _currentGameID;
 }
 
+bool DataBase::updateGameStatus(int gameID)
+{
+	int rc;
+	time_t timeNow = time(0);
+	string date = ctime(&timeNow);
+	stringstream updateGameStatus;
+	
+	updateGameStatus << "UPDATE t_games SET status = 1, end_time = " << date << " WHERE game_id = " << gameID;
 
+	try
+	{
+		rc = sqlite3_exec(_db, updateGameStatus.str().c_str(), NULL, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			throw exception(UPDATING_ERROR);
+			return false;
+		}
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+
+	return true;
+}
+
+bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime)
+{
+	int rc;
+	stringstream addToPlayer;
+	addToPlayer << "insert into t_players_answers values(" << gameID << ", " << username << ", " << questionID << ", " << answer << ", " << isCorrect << ", " << answerTime << ")";
+
+	try
+	{
+		rc = sqlite3_exec(_db, addToPlayer.str().c_str(), NULL, 0, &zErrMsg);
+		if (rc != SQLITE_OK)
+		{
+			throw exception(INSERTING_ERROR);
+			return false;
+		}
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+
+	return true;
+}
+
+int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
+{
+	int i;
+
+	for (i = 0; i < argc; i++)
+	{
+		auto it = results.find(azCol[i]);
+		if (it != results.end())
+		{
+			it->second.push_back(argv[i]);
+		}
+		else
+		{
+			pair<string, vector<string>> p;
+			p.first = azCol[i];
+			p.second.push_back(argv[i]);
+			results.insert(p);
+		}
+	}
+
+	return 0;
+}
 
 int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azCol)
 {

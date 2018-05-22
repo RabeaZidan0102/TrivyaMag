@@ -22,9 +22,9 @@ public:
 	bool isUserAndPassMatch(string username, string password);
 	vector<Question*> initQuestion(int numberOfQustions);
 	vector<string> getBestScores();
-	vector<string> getPersonalStatus();
+	vector<string> getPersonalStatus(string username);
 	int insertNewGame();
-	bool updateGameStatus();
+	bool updateGameStatus(int gameID);
 	bool addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime);
 
 private:

@@ -17,6 +17,12 @@ int main()
 		cout << v[current] << endl;
 	}
 
+	vector<string> vectorName = db->getPersonalStatus("erez");
+	for (unsigned int i = 0; i < vectorName.size(); i++)
+	{
+		cout << vectorName[i] << endl;
+	}
+
 	system("pause");
 	return 0;
 }
