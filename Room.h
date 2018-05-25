@@ -4,6 +4,8 @@
 #include <vector>
 
 using std::vector;
+using std::cout;
+using std::endl;
 
 class Room
 {
@@ -18,9 +20,10 @@ public:
 	int getQuestionNumber();
 	int getID();
 	string getName;
+	string getAdminName();
 
 private:
-	string getUsersAsString(vector<User*> usersVector, User* user);
+	//string getUsersAsString(vector<User*> usersVector, User* user);
 	void sendMessage(string message);
 	void sendMessage(User* excludeUser, string message);
 
@@ -31,4 +34,5 @@ private:
 	int _questionsNumber;
 	string _name;
 	int _id;
+	Helper _help;
 };

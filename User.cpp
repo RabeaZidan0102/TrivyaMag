@@ -83,17 +83,32 @@ void User::leaveRoom()
 {
 	if (this->_currRoom != nullptr)
 	{
-		//_currRoom->leaveRoom(this);
+		_currRoom->leaveRoom(this);
 		clearRoom();
 	}
 
 }
 
-// TO DO
 int User::closeRoom()
 {
+	int roomID;
+	if (this->_currRoom == nullptr)
+	{
+		return -1;
+	}
+	else if(_currRoom->getAdminName() == this->getUsername())
+	{
+		roomID = _currRoom->getID();
+		_currRoom->closeRoom(this);
+		this->clearRoom();
 
-	return 0;
+		return roomID;
+	}
+	else
+	{
+		return -1;
+	}
+
 }
 
 bool User::leaveGame()
@@ -104,6 +119,7 @@ bool User::leaveGame()
 		{
 			return true;
 		}
+	}
 	return false;
 }
 
