@@ -8,9 +8,11 @@
 #include <string>
 #include <map>
 
+
 #define RETRIVING_ERROR "ERROR, while retriving information."
 #define INSERTING_ERROR "ERROR, while inserting information."
 #define UPDATING_ERROR "ERROR, IN UPDATING."
+#define ERROR_RETURN -1
 
 using std::exception;
 using std::stringstream;
@@ -234,7 +236,6 @@ vector<string> DataBase::getPersonalStatus(string username)
 {
 	vector<string> personalStatus;
 	stringstream getNumberOfGames, numberOfIsCorrectAnswers;
-	int rc;
 
 	try
 	{
@@ -309,6 +310,7 @@ int DataBase::insertNewGame()
 		if (rc != SQLITE_OK)
 		{
 			throw exception(INSERTING_ERROR);
+			return ERROR_RETURN;
 		}
 		else
 		{
@@ -371,6 +373,11 @@ bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, st
 	}
 
 	return true;
+}
+
+unordered_map<string, vector<string>> DataBase::getResults()
+{
+	return unordered_map<string, vector<string>>(results);
 }
 
 int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)

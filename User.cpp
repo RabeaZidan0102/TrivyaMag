@@ -1,4 +1,6 @@
 #include "User.h"
+#include "Game.h"
+#include "Room.h"
 
 User::User(string username, SOCKET socket) : _username(username), _sock(socket)
 {

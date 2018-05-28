@@ -1,15 +1,19 @@
 #pragma once
 
-#include "Question.h"
 #include <vector>
 #include <unordered_map>
 #include "sqlite3.h"
+#include <iostream>
+#include "Question.h"
 
 using std::vector;
 using std::cout;
 using std::endl;
 using std::unordered_map;
 using std::pair;
+using std::string; 
+
+//class Question;
 
 class DataBase
 {
@@ -26,6 +30,7 @@ public:
 	int insertNewGame();
 	bool updateGameStatus(int gameID);
 	bool addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime);
+	unordered_map<string, vector<string>> getResults();
 
 private:
 	sqlite3 * _db;

@@ -5,10 +5,11 @@
 #include <string>
 #include <iostream>
 #include "Helper.h"
-#include "Room.h"
-#include "Game.h"
 
 using std::string;
+
+class Room;
+class Game;
 
 class User
 {

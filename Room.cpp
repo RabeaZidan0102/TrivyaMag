@@ -1,6 +1,7 @@
 #include "Room.h"
 #include <sstream>
 #include <exception>
+#include "User.h"
 
 using std::stringstream;
 using std::exception;
@@ -71,6 +72,7 @@ vector<User*> Room::getUsers()
 
 string Room::getUserListMessage()
 {
+	// 108 message to the server
 	stringstream msg108;
 	msg108 << "108";
 
