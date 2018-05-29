@@ -375,58 +375,6 @@ bool DataBase::addAnswerToPlayer(int gameID, string username, int questionID, st
 	return true;
 }
 
-unordered_map<string, int> DataBase::getPlayersScore()
-{
-	unordered_map<string, int> _playersScore;
-
-	int rc;
-	stringstream getIsCorrectQuestion;
-	vector<string> _allOFPlayersWithIsCorrectAnswer;
-	vector<string> _bestScoreUsernames;
-
-	try
-	{
-		// we have a vector of 
-		getIsCorrectQuestion << "SELECT username from t_players_answers WHERE is_correct = 1";
-		rc = sqlite3_exec(_db, getIsCorrectQuestion.str().c_str(), callbackBestScore, 0, &zErrMsg);
-
-		if (rc != SQLITE_OK)
-		{
-			throw exception(RETRIVING_ERROR);
-		}
-		else
-		{
-			for (unsigned int i = 0; i < results["username"].size(); i++)
-			{
-				_allOFPlayersWithIsCorrectAnswer.push_back(results["username"][i]);
-			}
-
-			// string username, number of repetead time of the names
-			unordered_map<string, int>::iterator it;
-
-			for (unsigned int i = 0; i < results["username"].size(); i++)
-			{
-				_playersScore.insert(pair<string, int>(_allOFPlayersWithIsCorrectAnswer[i], 0));
-				for (it = _playersScore.begin(); it != _playersScore.end(); ++it)
-				{
-					if (it->first == _allOFPlayersWithIsCorrectAnswer[i])
-					{
-						int c = _playersScore[it->first];
-						_playersScore[it->first] = c + 1;
-					}
-				}
-
-			}
-		}
-	}
-	catch (exception& e)
-	{
-		cout << e.what() << endl;
-	}
-
-	return unordered_map<string, int>(_playersScore);
-}
-
 int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
 {
 	int i;

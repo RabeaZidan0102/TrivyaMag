@@ -16,18 +16,20 @@ Game::Game(const vector<User*> &players, int questionNumber, DataBase &db) : _db
 		_questionNumber = questionNumber;
 		_gameID = _db.insertNewGame();
 		_currentTurnAnswers = 0;
+
 		if (_gameID == -1)
 		{
 			throw exception("ERROR, in inserting new game");
 		}
 		else
 		{
-			_questions = _db.initQuestion(questionNumber);
+			this->initQuestionFromDB();
 			_players = players;
 
 			for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
 			{
 				(*playersItr)->setGame(this);
+				_results[(*playersItr)->getUsername()] = 0;
 			}
 		}
 	}
@@ -45,6 +47,7 @@ Game::Game(Game& other) : _db(other._db)
 	_currQuestionIndex = other._currQuestionIndex;
 	_gameID = other._gameID;
 	_currentTurnAnswers = other._currentTurnAnswers;
+	_results = other._results;
 }
 
 Game::~Game()
@@ -70,7 +73,7 @@ void Game::handleFinishGame()
 		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
 		{
 			msg121 << "#" << _myHelper.getPaddedNumber((*playersItr)->getUsername().length(), 2);
-			msg121 << "#" << (*playersItr)->getUsername() << " " << _db.getPlayersScore()[(*playersItr)->getUsername()];
+			msg121 << "#" << (*playersItr)->getUsername() << _results[(*playersItr)->getUsername()];
 		}
 
 		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
@@ -87,18 +90,75 @@ void Game::handleFinishGame()
 
 bool Game::handleNextTurn()
 {
+	// there is no one in the game 
+	if (_players.size() == 0)
+	{
+		this->handleFinishGame();
+		return false;
+	}
+	if (_players.size() == _currentTurnAnswers)
+	{
+		if (_currQuestionIndex = _questionNumber + 1)
+		{
+			this->handleFinishGame();
+			return false;
+		}
+	}
+	else
+	{
+		_currQuestionIndex++;
+		this->sendQuestionToAllUsers();
+		return true;
+	}
+}
 
-	return false;
+bool Game::handleAnswerFromUser(User * user, int answerNumber, int time)
+{
+	_currentTurnAnswers++;
+	bool isCorrect = false;
+	
+	if (answerNumber == _questions[_currQuestionIndex]->getCorrectAnswerIndex() && answerNumber < 5)
+	{
+		_results[user->getUsername()] = _results[user->getUsername()] + 1;
+		isCorrect = true;
+	}
+
+	if (answerNumber < 5)
+	{
+	_db.addAnswerToPlayer(_gameID, user->getUsername(), _questions[_currQuestionIndex]->getID(), _questions[_currQuestionIndex]->getAnswers()[answerNumber - 1], isCorrect, time);
+	}
+	else
+	{
+		_db.addAnswerToPlayer(_gameID, user->getUsername(), _questions[_currQuestionIndex]->getID(), "", isCorrect, time);
+	}
+	
+	user->send("120" + isCorrect);
+
+	return (this->handleNextTurn());
 }
 
 bool Game::leaveGame(User * currUser)
-{
-	return false;
+{	
+	for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
+	{
+		if (*playersItr == currUser)
+		{
+			_players.erase(playersItr);
+			break;
+		}
+	}
+
+	return this->handleNextTurn();
 }
 
 int Game::getID()
 {
 	return _gameID;
+}
+
+void Game::initQuestionFromDB()
+{
+	_questions = _db.initQuestion(_questionNumber);
 }
 
 void Game::sendQuestionToAllUsers()

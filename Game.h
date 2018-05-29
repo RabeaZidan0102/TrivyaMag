@@ -25,7 +25,6 @@ public:
 
 
 private:
-	bool insertGameToDB();
 	void initQuestionFromDB();
 	void sendQuestionToAllUsers();
 
@@ -40,7 +39,7 @@ private:
 
 	DataBase& _db;
 	
-	//username point(true answers)
+	//username, point(correct answers)
 	map<string, int> _results;
 	//numbers of players that returned their answers in the round
 	int _currentTurnAnswers;

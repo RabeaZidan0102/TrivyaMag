@@ -27,14 +27,7 @@ int main()
 	{
 		cout << vectorName[i] << endl;
 	}
-	//SOCKET _socket;
-//	User* r = new User("saewe", _socket);
-	//Room* room = new Room(4, r, "s", 5, 2,5);
-	
-	//room->getUserListMessage();
 
-	//Game* gm;
-	//gm->
 
 	system("pause");
 	return 0;
