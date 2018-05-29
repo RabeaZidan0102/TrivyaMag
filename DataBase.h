@@ -30,7 +30,7 @@ public:
 	int insertNewGame();
 	bool updateGameStatus(int gameID);
 	bool addAnswerToPlayer(int gameID, string username, int questionID, string answer, bool isCorrect, int answerTime);
-	unordered_map<string, vector<string>> getResults();
+	unordered_map<string, int> getPlayersScore();
 
 private:
 	sqlite3 * _db;

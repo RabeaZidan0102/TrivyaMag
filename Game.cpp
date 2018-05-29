@@ -63,16 +63,14 @@ void Game::handleFinishGame()
 	_db.updateGameStatus(this->getID());
 	
 	stringstream msg121;
-	int i = 0;
 
 	try
 	{
 		msg121 << "121# " << _players.size();
 		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
 		{
-			msg121 << "#" << _myHelper.getPaddedNumber(_db.getResults()[(*playersItr)->getUsername()][i].length(), 2);
-			msg121 << "#" << (*playersItr)->getUsername() << " " << _db.getResults()[(*playersItr)->getUsername()][i];
-			i++;
+			msg121 << "#" << _myHelper.getPaddedNumber((*playersItr)->getUsername().length(), 2);
+			msg121 << "#" << (*playersItr)->getUsername() << " " << _db.getPlayersScore()[(*playersItr)->getUsername()];
 		}
 
 		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
