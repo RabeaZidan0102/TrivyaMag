@@ -2,6 +2,7 @@
 #include "User.h"
 #include "Room.h"
 #include "Question.h"
+#include "DataBase.h"
 #include <exception>
 
 using std::exception;
@@ -90,6 +91,18 @@ void Protocol::response110(int questionsNumber, int time, int status, Room* curr
 	}
 }
 
+void Protocol::response112(SOCKET _socket, bool success)
+{
+	if (success)
+	{
+		_myHelper.sendData(_socket, "1120"); // success
+	}
+	else
+	{
+		response116(_socket);
+	}
+}
+
 /*
 	Status = 1 -> fail
 	Status = 0 -> success
@@ -101,7 +114,7 @@ void Protocol::response114(int status, SOCKET _socket)
 	_myHelper.sendData(_socket, res114.str());
 }
 
-void Protocol::response116(User* user, SOCKET _socket)
+void Protocol::response116(SOCKET _socket)
 {
 	_myHelper.sendData(_socket, "116");
 }
@@ -136,6 +149,24 @@ void Protocol::response120(int yesOrNot, SOCKET _socket)
 {
 	_myHelper.sendData(_socket, ("120" + yesOrNot));
 }
+
+void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)
+{
+	vector<string> top3_Scores = DB.getBestScores();
+	stringstream res124;
+
+	res124 << "124";
+
+	for (unsigned int i = 0; i < top3_Scores.size(); i++)
+	{
+		string name = top3_Scores[i].replace(top3_Scores[i].end() - 7, top3_Scores[i].end() - 6, "");
+		res124 << _myHelper.getPaddedNumber(name.size() - 6, 2) << name;
+	}
+
+	_myHelper.sendData(_socket, res124.str());
+}
+
+
 
 
 

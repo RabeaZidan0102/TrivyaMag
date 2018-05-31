@@ -15,6 +15,7 @@ using std::stringstream;
 class Room;
 class User;
 class Question;
+class DataBase;
 
 // msg -> from the server
 // msg -> from the client
@@ -48,13 +49,13 @@ public:
 	void response106(vector<Room*> rooms, SOCKET _socket);
 	string response108(vector<User*> users, bool error);
 	void response110(int questionsNumber, int time, int status, Room* currRoom, SOCKET _socket); // 0 /1/2
-	void response112(SOCKET _socket);
+	void response112(SOCKET _socket, bool succesOrNot);
 	void response114(int status, SOCKET _socket); // 0 fail, 1 success
-	void response116(User* user, SOCKET _socket);
+	void response116(SOCKET _socket);
 	void response118(Question* question, SOCKET _socket, User* user, Room* room);
 	void response120(int yesOrNot, SOCKET _socket);
 	void response121(vector<User*> users, SOCKET _socket);
-	void response124(vector<User*> users, SOCKET _socket);
+	void response124(vector<User*> users, SOCKET _socket, DataBase DB);
 	void response126(vector<User*> users, SOCKET _socket);
 
 

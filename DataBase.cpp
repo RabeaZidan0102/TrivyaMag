@@ -209,11 +209,16 @@ vector<string> DataBase::getBestScores()
 				return l.second > r.second;
 			});
 
+			vector<stringstream> names(3);
+			names[0] << topThree[0].first << " " << theHelp.getPaddedNumber(topThree[0].second, 6);
+			names[1] << topThree[1].first << " " << theHelp.getPaddedNumber(topThree[1].second, 6);
+			names[2] << topThree[2].first << " " << theHelp.getPaddedNumber(topThree[2].second, 6);
+
 			try
 			{
-				_bestScoreUsernames.push_back(topThree[0].first);
-				_bestScoreUsernames.push_back(topThree[1].first);
-				_bestScoreUsernames.push_back(topThree[2].first);
+				_bestScoreUsernames.push_back(names[0].str());
+				_bestScoreUsernames.push_back(names[1].str());
+				_bestScoreUsernames.push_back(names[2].str());
 			}
 			catch (exception& e)
 			{

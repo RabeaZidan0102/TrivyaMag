@@ -5,6 +5,7 @@
 #include "sqlite3.h"
 #include <iostream>
 #include "Question.h"
+#include "Helper.h"
 
 using std::vector;
 using std::cout;
@@ -35,6 +36,7 @@ private:
 	sqlite3 * _db;
 	char* zErrMsg = 0;
 	int _currentGameID;
+	Helper theHelp;
 
 	static int callbackCount(void*, int, char**, char**);
 	static int callbackQuestions(void*, int, char**, char**);
