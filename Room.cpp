@@ -102,6 +102,11 @@ int Room::getID()
 	return _id;
 }
 
+string Room::getName()
+{
+	return string(_name);
+}
+
 string Room::getAdminName()
 {
 	return string(_admin->getUsername());

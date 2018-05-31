@@ -24,7 +24,7 @@ public:
 	string getUserListMessage();
 	int getQuestionNumber();
 	int getID();
-	string getName;
+	string getName();
 	string getAdminName();
 
 private:
