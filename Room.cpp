@@ -72,24 +72,15 @@ vector<User*> Room::getUsers()
 
 string Room::getUserListMessage()
 {
+	bool error = false;
 	// 108 message to the server
-	stringstream msg108;
-	msg108 << "108";
-
-	if (_users.size() == 0)
+	if (this->getUsers().size() == 0)
 	{
-		msg108 << "#" << _users.size();
-		for (unsigned int i = 0; i < _users.size(); i++)
-		{
-			msg108 << "#"<< _help.getPaddedNumber(_users[i]->getUsername().length(),2) <<"#" << _users[i]->getUsername();
-		}
-	}
-	else
-	{
-		msg108 << "0";
+		error = true;
 	}
 
-	return string(msg108.str());
+	return(_Protocol.response108(this->getUsers(), error));
+
 }
 
 int Room::getQuestionNumber()

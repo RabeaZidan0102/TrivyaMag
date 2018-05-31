@@ -22,7 +22,7 @@ class Question;
 class Protocol
 {
 public:
-	Protocol(SOCKET sock);
+	Protocol();
 	~Protocol();
 	/*
 	//requests
@@ -43,22 +43,21 @@ public:
 	*/
 
 	//responses
-	void response102(string details); // 0 or 1 or 2
-	void response104(string respond);
-	void response106(vector<Room*> rooms);
-	void response108(vector<User*> users, bool error);
-	void response110(int questionsNumber, int time); // 0 /1/2
-	void response112();
-	void response114(int status); // 0 fail, 1 success
-	void response116(vector<User*> users);
-	void response118(Question* question);
-	void response120(int yesOrNot);
-	void response121(vector<User*> users);
-	void response124(vector<User*> users);
-	void response126(vector<User*> users);
+	void response102(string details, SOCKET _socket); // 0 or 1 or 2
+	void response104(string respond, SOCKET _socket);
+	void response106(vector<Room*> rooms, SOCKET _socket);
+	string response108(vector<User*> users, bool error);
+	void response110(int questionsNumber, int time, int status, Room* currRoom, SOCKET _socket); // 0 /1/2
+	void response112(SOCKET _socket);
+	void response114(int status, SOCKET _socket); // 0 fail, 1 success
+	void response116(User* user, SOCKET _socket);
+	void response118(Question* question, SOCKET _socket, User* user, Room* room);
+	void response120(int yesOrNot, SOCKET _socket);
+	void response121(vector<User*> users, SOCKET _socket);
+	void response124(vector<User*> users, SOCKET _socket);
+	void response126(vector<User*> users, SOCKET _socket);
 
 
 private:
 	Helper _myHelper;
-	SOCKET _socket;
 };

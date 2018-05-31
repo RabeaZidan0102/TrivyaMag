@@ -90,6 +90,7 @@ void Game::handleFinishGame()
 
 bool Game::handleNextTurn()
 {
+	bool ans = true;
 	// there is no one in the game 
 	if (_players.size() == 0)
 	{
@@ -101,15 +102,14 @@ bool Game::handleNextTurn()
 		if (_currQuestionIndex = _questionNumber + 1)
 		{
 			this->handleFinishGame();
-			return false;
 		}
 	}
 	else
 	{
 		_currQuestionIndex++;
 		this->sendQuestionToAllUsers();
-		return true;
 	}
+	return ans;
 }
 
 bool Game::handleAnswerFromUser(User * user, int answerNumber, int time)

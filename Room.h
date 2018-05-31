@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include "Helper.h"
+#include "Protocol.h"
 #include <iostream>
 
 using std::vector;
@@ -40,4 +41,5 @@ private:
 	string _name;
 	int _id;
 	Helper _help;
+	Protocol _Protocol;
 };
