@@ -64,7 +64,7 @@ private:
 	// variables
 	SOCKET _socket;
 	map<SOCKET, User*> _connectedUsers;
-	DataBase _db;
+	//DataBase _db;
 	map <int, Room*> _roomsList;
 
 	mutex _mtxRecievedMessages;

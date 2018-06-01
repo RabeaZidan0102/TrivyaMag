@@ -24,6 +24,14 @@ int main()
 
 	string names = v[0].replace(v[0].end()-7, v[0].end()-6, "");
 	cout << names << endl;
+
+	cout << "\n\n\n\n";
+	vector<string> _vectorStatus = db->getPersonalStatus("erez");
+	for (unsigned int i = 0; i < _vectorStatus.size(); i++)
+	{
+		cout << _vectorStatus[i] << endl;
+	}
+
 /*
 	vector<string> vectorName = db->getPersonalStatus("erez");
 	for (unsigned int i = 0; i < vectorName.size(); i++)

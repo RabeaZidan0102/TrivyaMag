@@ -150,6 +150,20 @@ void Protocol::response120(int yesOrNot, SOCKET _socket)
 	_myHelper.sendData(_socket, ("120" + yesOrNot));
 }
 
+void Protocol::response121(vector<User*> users, SOCKET _socket, DataBase DB)
+{
+	stringstream res121;
+	res121 << "121" << _myHelper.getPaddedNumber(users.size(), 1);
+	
+	for (unsigned int i = 0; i < users.size(); i++)
+	{
+		res121 << _myHelper.getPaddedNumber(users[i]->getUsername().length(), 2) << users[i]->getUsername();
+		res121 << _myHelper.getPaddedNumber(DB.getPersonalStatus(users[i]->getUsername())[1].length(), 2);
+	}
+
+	_myHelper.sendData(_socket, res121.str());
+}
+
 void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)
 {
 	vector<string> top3_Scores = DB.getBestScores();
@@ -164,6 +178,29 @@ void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)
 	}
 
 	_myHelper.sendData(_socket, res124.str());
+}
+
+void Protocol::response126(User* user, SOCKET _socket, DataBase DB)
+{
+	stringstream res126;
+	res126 << "126";
+	
+	if (DB.getPersonalStatus(user->getUsername())[0].length() > 0)
+	{
+		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[0].length(), 4);
+		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[1].length(), 6);
+		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[2].length(), 6);
+
+		res126 << _myHelper.getPaddedNumber((DB.getPersonalStatus(user->getUsername())[3]).substr(0, 1).length(), 2);
+		res126 << _myHelper.getPaddedNumber((DB.getPersonalStatus(user->getUsername())[3]).substr(2, 2).length(), 2);
+
+		_myHelper.sendData(_socket, res126.str());
+	}
+	else
+	{
+		res126 << "0000";
+		_myHelper.sendData(_socket, res126.str());
+	}
 }
 
 

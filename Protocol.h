@@ -54,9 +54,9 @@ public:
 	void response116(SOCKET _socket);
 	void response118(Question* question, SOCKET _socket, User* user, Room* room);
 	void response120(int yesOrNot, SOCKET _socket);
-	void response121(vector<User*> users, SOCKET _socket);
+	void response121(vector<User*> users, SOCKET _socket, DataBase DB);
 	void response124(vector<User*> users, SOCKET _socket, DataBase DB);
-	void response126(vector<User*> users, SOCKET _socket);
+	void response126(User* user, SOCKET _socket, DataBase DB);
 
 
 private:
