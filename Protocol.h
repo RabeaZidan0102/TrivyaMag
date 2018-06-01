@@ -52,9 +52,9 @@ public:
 	void response112(SOCKET _socket, bool succesOrNot);
 	void response114(int status, SOCKET _socket); // 0 fail, 1 success
 	void response116(SOCKET _socket);
-	void response118(Question* question, SOCKET _socket, User* user, Room* room);
-	void response120(int yesOrNot, SOCKET _socket);
-	void response121(vector<User*> users, SOCKET _socket, DataBase DB);
+	string response118(Question* question, User* user, Room* room);
+	string response120(bool yesOrNot);
+	string response121(vector<User*> users, DataBase DB);
 	void response124(vector<User*> users, SOCKET _socket, DataBase DB);
 	void response126(User* user, SOCKET _socket, DataBase DB);
 

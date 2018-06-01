@@ -3,6 +3,7 @@
 #include <map>
 #include "DataBase.h"
 #include "Helper.h"
+#include "Protocol.h"
 
 using std::map;
 
@@ -44,4 +45,5 @@ private:
 	//numbers of players that returned their answers in the round
 	int _currentTurnAnswers;
 	Helper _myHelper;
+	Protocol _Protocol;
 };

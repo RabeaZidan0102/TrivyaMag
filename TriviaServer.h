@@ -7,6 +7,7 @@
 #include <map>
 #include <mutex>
 #include <queue>
+#include "DataBase.h"
 
 using std::string;
 using std::map;
@@ -16,7 +17,6 @@ using std::queue;
 class RecievedMessage;
 class User;
 class Room;
-class DataBase;
 
 class TriviaServer
 {
@@ -64,7 +64,7 @@ private:
 	// variables
 	SOCKET _socket;
 	map<SOCKET, User*> _connectedUsers;
-	//DataBase _db;
+	DataBase _db;
 	map <int, Room*> _roomsList;
 
 	mutex _mtxRecievedMessages;

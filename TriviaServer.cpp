@@ -9,6 +9,8 @@ using std::exception;
 
 TriviaServer::TriviaServer()
 {
+	DataBase* temp = new DataBase();
+	_db = *temp;
 
 	try
 	{
@@ -27,5 +29,18 @@ TriviaServer::TriviaServer()
 
 TriviaServer::~TriviaServer()
 {
+	_roomsList.clear();
+	_connectedUsers.clear();
+	
+	try
+	{
+		// the only use of the destructor should be for freeing 
+		// resources that was allocated in the constructor
+		::closesocket(_socket);
+	}
+	catch (...) {}
+}
 
+void TriviaServer::server()
+{
 }

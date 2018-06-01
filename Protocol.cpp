@@ -119,7 +119,7 @@ void Protocol::response116(SOCKET _socket)
 	_myHelper.sendData(_socket, "116");
 }
 
-void Protocol::response118(Question * question, SOCKET _socket, User* user, Room* room)
+string Protocol::response118(Question * question, User* user, Room* room)
 {
 	stringstream res118;
 
@@ -132,25 +132,27 @@ void Protocol::response118(Question * question, SOCKET _socket, User* user, Room
 		{
 			res118 << _myHelper.getPaddedNumber(question->getAnswers()[i].length(), 3) << question->getAnswers()[i];
 		}
-
-		_myHelper.sendData(_socket, res118.str());
 	}
 	catch (exception& e)
 	{
 		cout << e.what() << endl;
 		if (user->getUsername() == room->getAdminName())
 		{
-			_myHelper.sendData(_socket, "1180");
+			res118 << "1180";
 		}
 	}
+
+	return (res118.str());
 }
 
-void Protocol::response120(int yesOrNot, SOCKET _socket)
+string Protocol::response120(bool yesOrNot)
 {
-	_myHelper.sendData(_socket, ("120" + yesOrNot));
+	stringstream res120;
+	res120 << "120" << yesOrNot;
+	return (res120.str());
 }
 
-void Protocol::response121(vector<User*> users, SOCKET _socket, DataBase DB)
+string Protocol::response121(vector<User*> users, DataBase DB)
 {
 	stringstream res121;
 	res121 << "121" << _myHelper.getPaddedNumber(users.size(), 1);
@@ -161,7 +163,7 @@ void Protocol::response121(vector<User*> users, SOCKET _socket, DataBase DB)
 		res121 << _myHelper.getPaddedNumber(DB.getPersonalStatus(users[i]->getUsername())[1].length(), 2);
 	}
 
-	_myHelper.sendData(_socket, res121.str());
+	return (res121.str());
 }
 
 void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)

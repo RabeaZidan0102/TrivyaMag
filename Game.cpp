@@ -65,20 +65,11 @@ void Game::handleFinishGame()
 {
 	_db.updateGameStatus(this->getID());
 	
-	stringstream msg121;
-
 	try
 	{
-		msg121 << "121# " << _players.size();
 		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
 		{
-			msg121 << "#" << _myHelper.getPaddedNumber((*playersItr)->getUsername().length(), 2);
-			msg121 << "#" << (*playersItr)->getUsername() << _results[(*playersItr)->getUsername()];
-		}
-
-		for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
-		{
-			(*playersItr)->send(msg121.str());
+			(*playersItr)->send(_Protocol.response121(_players, _db));
 			(*playersItr)->setGame(nullptr);
 		}
 	}
@@ -132,7 +123,7 @@ bool Game::handleAnswerFromUser(User * user, int answerNumber, int time)
 		_db.addAnswerToPlayer(_gameID, user->getUsername(), _questions[_currQuestionIndex]->getID(), "", isCorrect, time);
 	}
 	
-	user->send("120" + isCorrect);
+	user->send(_Protocol.response120(isCorrect));
 
 	return (this->handleNextTurn());
 }
@@ -165,40 +156,12 @@ void Game::sendQuestionToAllUsers()
 {
 	// 118 message to the server
 	_currentTurnAnswers = 0;
-	stringstream  msg118;
-	string* answers = _questions[_currQuestionIndex]->getAnswers();
-
-	msg118 << "118";
-
 
 	for (playersItr = _players.begin(); playersItr != _players.end(); ++playersItr)
 	{
-		try
+		if (_questions[_currQuestionIndex]->getQuestion().length() > 0)
 		{
-			if (_questions[_currQuestionIndex]->getQuestion().length() > 0)
-			{
-				msg118 << "#" << _myHelper.getPaddedNumber(_questions[_currQuestionIndex]->getQuestion().length(), 3) << "#" << _questions[_currQuestionIndex]->getQuestion();
-				for (unsigned int i = 0; i < answers->size(); i++)
-				{
-					msg118 << "#" << _myHelper.getPaddedNumber(answers[i].length(), 3) << "#" << answers[i];
-				}		
-					
-				(*playersItr)->send(msg118.str());
-				
-			}
-			else
-			{
-				msg118 << "0";
-
-				if ((*playersItr)->getRoom()->getAdminName() == (*playersItr)->getUsername())
-				{
-					(*playersItr)->send(msg118.str());
-				}
-			}
-		}
-		catch (exception& e)
-		{
-			cout << e.what() << endl;
+			(*playersItr)->send(_Protocol.response118(_questions[_currQuestionIndex], (*playersItr), (*playersItr)->getRoom()));
 		}
 	}
 }
