@@ -7,13 +7,14 @@
 #include <WinSock2.h>
 #include <Windows.h>
 #include "Game.h"
+#include "TriviaServer.h"
 
 int main()
 {/*
 	Validator myTest;
 	std::cout << myTest.isPasswrodValid("s00Suray2") << std::endl;
 	std::cout << myTest.isUserNameValid("sdsdwe") << std::endl;
-*/
+
 	DataBase* db = new DataBase();
 	vector<string> v = db->getBestScores();
 	string name = v[0];
@@ -32,13 +33,26 @@ int main()
 		cout << _vectorStatus[i] << endl;
 	}
 
-/*
+
 	vector<string> vectorName = db->getPersonalStatus("erez");
 	for (unsigned int i = 0; i < vectorName.size(); i++)
 	{
 		cout << vectorName[i] << endl;
 	}
 */
+//	                             5      5+x+2    5+x+2+y+2                  
+	string msgInString = "20005suray04abcd10suray@wert";
+
+	cout << msgInString.substr(5, std::stoi(msgInString.substr(3, 2))) << endl;
+	cout << msgInString.substr(5 + std::stoi(msgInString.substr(3, 2)) + 2, std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2))) << endl;
+	
+	int x = std::stoi(msgInString.substr(3, 2));
+	int y = std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2));
+	cout << msgInString.substr(5 + x + 2 + y + 2, std::stoi(msgInString.substr(5 + x + 2 + y, 2))) << endl;
+	/*
+	TriviaServer* myServer = new TriviaServer();
+	myServer->serve();
+	*/
 
 	system("pause");
 	return 0;

@@ -10,6 +10,10 @@
 #include "DataBase.h"
 #include <condition_variable>
 
+#define PORT 8820 
+#define BUFFER 4800
+#define MT_CLIENT_EXIT 299
+
 using std::string;
 using std::map;
 using std::mutex;
@@ -23,20 +27,21 @@ class Room;
 
 enum MessageType : byte
 {
-	MT_CLIENT_LOG_IN = 200,
-	MT_CLIENT_SIGN_UP = 202,
-	MT_CLIENT_SIGN_OUT = 207,
-	MT_CLIENT_LEAVE_GAME = 208,
-	MT_CLIENT_START_GAME = 101,
-	MT_CLIENT_PLAYERS_ANSWER = 111,
-	MT_CLIENT_CREATE_ROOM = 244,
-	MT_CLIENT_CLOSE_ROOM = 24,
-	MT_CLIENT_JOIN_ROOM = 55,
-	MT_CLIENT_LEAVE_ROOM = 5,
-	MT_CLIENT_GET_USERS_IN_ROOM = 554,
-	MT_CLIENT_GET_ROOMS = 54,
-	MT_CLIENT_GET_BEST_SCORE = 54,
-	MT_CLIENT_GET_PERSONAL_STATUS = 45,
+	MT_CLIENT_SIGN_IN = 200,
+	MT_CLIENT_SIGN_OUT = 201,
+	MT_CLIENT_SIGN_UP = 203,
+	MT_CLIENT_GET_ROOMS = 205,
+	MT_CLIENT_GET_USERS_IN_ROOM = 207,
+	MT_CLIENT_JOIN_ROOM = 209,
+	MT_CLIENT_LEAVE_ROOM = 211,
+	MT_CLIENT_CREATE_ROOM = 213,
+	MT_CLIENT_CLOSE_ROOM = 215,
+	MT_CLIENT_START_GAME = 217,
+	MT_CLIENT_PLAYERS_ANSWER = 219,
+	MT_CLIENT_LEAVE_GAME = 222,
+	MT_CLIENT_GET_BEST_SCORE = 223,
+	MT_CLIENT_GET_PERSONAL_STATUS = 225,
+	//MT_CLIENT_EXIT = 299,
 };
 
 
@@ -75,7 +80,7 @@ private:
 	void handleGetBestScore(RecievedMessage* msg);
 	void handleGetPersonalStatus(RecievedMessage* msg);
 	
-	void handleRecieveMessage();
+	void handleRecievedMessage();
 	void addRecieveMessage(RecievedMessage* msg);
 	RecievedMessage* buildRecieveMessage(SOCKET sock, int msgCode);
 
