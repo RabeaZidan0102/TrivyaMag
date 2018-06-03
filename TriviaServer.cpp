@@ -8,11 +8,11 @@
 #include <thread>
 #include <mutex>
 
-static const unsigned short PORT = 8826;
-static const unsigned int IFACE = 0;
+static const int PORT = 8820;
 
 using std::exception;
 using std::lock_guard;
+using std::thread;
 
 TriviaServer::TriviaServer()
 {
@@ -68,11 +68,10 @@ void TriviaServer::bindAndListen()
 	struct sockaddr_in sa = { 0 };
 	sa.sin_port = htons(PORT);
 	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = IFACE;
+	sa.sin_addr.s_addr = INADDR_ANY;
 	// again stepping out to the global namespace
 	if (::bind(_socket, (struct sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR)
 		throw std::exception(__FUNCTION__ " - bind");
-	TRACE("binded");
 
 	if (::listen(_socket, SOMAXCONN) == SOCKET_ERROR)
 		throw std::exception(__FUNCTION__ " - listen");
@@ -93,7 +92,19 @@ void TriviaServer::acceptClient()
 
 void TriviaServer::clientHandler(SOCKET sock)
 {
-	
+	try
+	{
+		int msgFromClient = Helper::getMessageTypeCode(sock);
+		
+		while (msgFromClient != MT_CLIENT_EXIT || msgFromClient != 0)
+		{
+			this->buildRecieveMessage(sock, msgFromClient);
+		}
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
 }
 
 void TriviaServer::handleRecieveMessage()
