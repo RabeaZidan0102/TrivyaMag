@@ -7,8 +7,8 @@
 #include <exception>
 #include <thread>
 #include <mutex>
-
-static const int PORT = 8820;
+#include <vector>
+#include "Protocol.h"
 
 using std::exception;
 using std::lock_guard;
@@ -53,7 +53,7 @@ void TriviaServer::serve()
 	this->bindAndListen();
 
 	//create new thread for handling message
-	std::thread tr(&TriviaServer::handleRecieveMessage, this);
+	std::thread tr(&TriviaServer::handleRecievedMessage, this);
 	tr.detach();
 
 	while (true)
@@ -90,15 +90,93 @@ void TriviaServer::acceptClient()
 	tr.detach();
 }
 
+
 void TriviaServer::clientHandler(SOCKET sock)
+{
+	int msgCode = Helper::getMessageTypeCode(sock);
+
+	RecievedMessage* theReturnedMessage;
+	try
+	{
+		while (msgCode != 0 || msgCode != MT_CLIENT_EXIT)
+		{
+			theReturnedMessage = this->buildRecieveMessage(sock, msgCode);
+			this->addRecieveMessage(theReturnedMessage);
+			int newMsgCode = Helper::getMessageTypeCode(sock);
+		}
+	}
+	catch (exception &e)
+	{
+		cout << e.what() << endl;
+		RecievedMessage* errorRcvMsg = new RecievedMessage(sock, 299);
+		this->addRecieveMessage(errorRcvMsg);
+		closesocket(sock);
+	}
+}
+
+void TriviaServer::safeDeleteUser(RecievedMessage * msg)
 {
 	try
 	{
-		int msgFromClient = Helper::getMessageTypeCode(sock);
-		
-		while (msgFromClient != MT_CLIENT_EXIT || msgFromClient != 0)
+		SOCKET sock= msg->getSock();
+		this->handleSignout(msg);
+		closesocket(sock);
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+}
+
+User * TriviaServer::handleSignin(RecievedMessage * msg)
+{
+	try
+	{
+		vector<string> details = msg->getValues();
+		string username = details[0];
+		string password = details[1];
+
+		if (_db.isUserAndPassMatch(username, password))
 		{
-			this->buildRecieveMessage(sock, msgFromClient);
+			if (this->getUserByName(username))
+			{
+				_Protocol.response102("2", msg->getSock()); // user is already connected
+			}
+			else
+			{
+				User* newUser = new User(username, msg->getSock());
+				_mtxUsers.lock();
+				_connectedUsers.insert(pair<SOCKET, User*> (msg->getSock(), newUser));
+				_mtxUsers.unlock();
+				_Protocol.response102("0", msg->getSock()); // success
+				return newUser;
+			}
+		}
+		else
+		{
+			_Protocol.response102("1", msg->getSock()); // wrong details
+		}
+
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+
+	return nullptr;
+}
+
+void TriviaServer::handleSignout(RecievedMessage * msg)
+{
+	try
+	{
+		if (this->getUserBySocket(msg->getSock()))
+		{
+			usersItr = _connectedUsers.find(msg->getSock());
+			_connectedUsers.erase(usersItr);
+			this->handleCloseRoom(msg);
+			this->handleLeaveRoom(msg);
+			this->handleLeaveGame(msg);
 		}
 	}
 	catch (exception& e)
@@ -107,12 +185,91 @@ void TriviaServer::clientHandler(SOCKET sock)
 	}
 }
 
-void TriviaServer::handleRecieveMessage()
+void TriviaServer::handleRecievedMessage()
 {
+	std::unique_lock<mutex> locker(_mtxRecievedMessages);
+	while (true)
+	{
+		if (_queRcvMessages.empty())
+		{
+			_msgCondition.wait(locker);
+		}
 
+		RecievedMessage* rcvMsg = _queRcvMessages.front();
+
+		try
+		{
+			switch (rcvMsg->getMessageCode())
+			{
+			case MT_CLIENT_SIGN_IN:
+				this->handleSignin(rcvMsg);
+				break;
+
+			case MT_CLIENT_SIGN_OUT:
+				this->handleSignout(rcvMsg);
+				break;
+
+			case MT_CLIENT_SIGN_UP:
+				this->handleSignup(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_ROOMS:
+				this->handleGetRooms(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_USERS_IN_ROOM:
+				this->handleGetUserslnRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_JOIN_ROOM:
+				this->handleJoinRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_LEAVE_ROOM:
+				this->handleLeaveRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_CREATE_ROOM:
+				this->handleCreateRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_CLOSE_ROOM:
+				this->handleCloseRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_START_GAME:
+				this->handleStartGame(rcvMsg);
+				break;
+
+			case MT_CLIENT_PLAYERS_ANSWER:
+				this->handlePlayerAnswer(rcvMsg);
+				break;
+
+			case MT_CLIENT_LEAVE_GAME:
+				this->handleLeaveGame(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_BEST_SCORE:
+				this->handleGetBestScore(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_PERSONAL_STATUS:
+				this->handleGetPersonalStatus(rcvMsg);
+				break;
+
+			default:
+				this->safeDeleteUser(rcvMsg);
+			}
+		}
+		catch (exception& e)
+		{
+			cout << e.what() << endl;
+			this->safeDeleteUser(rcvMsg);
+		}
+	}
 }
 
-void TriviaServer::addRecieveMessage(RecievedMessage * msg)
+	void TriviaServer::addRecieveMessage(RecievedMessage * msg)
 {
 	lock_guard<mutex> lck(_mtxRecievedMessages);
 	_queRcvMessages.push(msg);
@@ -122,7 +279,112 @@ void TriviaServer::addRecieveMessage(RecievedMessage * msg)
 
 RecievedMessage * TriviaServer::buildRecieveMessage(SOCKET sock, int msgCode)
 {
+	string msgInString = Helper::getStringPartFromSocket(sock, BUFFER);
+	vector<string> parameters;
+	
+	if (msgCode == MT_CLIENT_SIGN_IN)
+	{
+		parameters.push_back(msgInString.substr(5, std::stoi(msgInString.substr(3, 2))));
+		parameters.push_back(msgInString.substr(5 + std::stoi(msgInString.substr(3, 2)) + 2, std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2))));
 
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_SIGN_OUT)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_SIGN_UP)
+	{
+		parameters.push_back(msgInString.substr(5, std::stoi(msgInString.substr(3, 2))));
+		parameters.push_back(msgInString.substr(5 + std::stoi(msgInString.substr(3, 2)) + 2, std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2))));
+		int up_till_name = std::stoi(msgInString.substr(3, 2));
+		int up_till_pass = std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2));
+		parameters.push_back(msgInString.substr(5 + up_till_name + 2 + up_till_pass + 2, std::stoi(msgInString.substr(5 + up_till_name + 2 + up_till_pass, 2))));
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_GET_ROOMS)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_GET_USERS_IN_ROOM)
+	{
+		parameters.push_back(msgInString.substr(3, 4));
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_JOIN_ROOM)
+	{
+		parameters.push_back(msgInString.substr(3, 4));
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_LEAVE_ROOM)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_CREATE_ROOM)
+	{
+		int sizeOfName = std::stoi(msgInString.substr(3, 2));
+		int indexOfName = 5;
+		int indexOfPlayersNumber = 5 + sizeOfName;
+		int indexOfQuestionsNumber = indexOfPlayersNumber + 1;
+		int indexOfQuestionTime = indexOfQuestionsNumber + 2;
+
+		parameters.push_back(msgInString.substr(indexOfName, sizeOfName));
+		parameters.push_back(msgInString.substr(indexOfPlayersNumber, 1));
+		parameters.push_back(msgInString.substr(indexOfQuestionsNumber, 2));
+		parameters.push_back(msgInString.substr(indexOfQuestionTime, 2));
+
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_CLOSE_ROOM)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_START_GAME)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+
+		this->handleStartGame(msg);
+		return msg;
+	}
+	else if (msgCode == MT_CLIENT_PLAYERS_ANSWER)
+	{
+		parameters.push_back(std::to_string(msgInString[3]));
+		parameters.push_back(msgInString.substr(5, 2));
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
+		parameters.clear();
+		return msg;
+	}
+	else if(msgCode == MT_CLIENT_LEAVE_GAME)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if(msgCode == MT_CLIENT_GET_BEST_SCORE)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	else if( msgCode == MT_CLIENT_GET_PERSONAL_STATUS)
+	{
+		RecievedMessage * msg = new RecievedMessage(sock, msgCode);
+		return msg;
+	}
+	
 	return nullptr;
 }
 
