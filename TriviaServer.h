@@ -89,7 +89,6 @@ private:
 	Room* getRoomByID(int id);
 
 
-
 	// variables
 	SOCKET _socket;
 	map<SOCKET, User*> _connectedUsers;
@@ -106,7 +105,7 @@ private:
 	condition_variable _msgCondition;
 	condition_variable _edited;
 
-	static int _roomIdSequence;
+	int _roomIdSequence;
 	
 	Protocol _Protocol;
 };

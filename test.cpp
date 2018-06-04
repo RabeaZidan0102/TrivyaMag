@@ -9,7 +9,8 @@
 #include "TriviaServer.h"
 
 int main()
-{	/*
+{	
+	/*
 	Validator myTest;
 	std::cout << myTest.isPasswrodValid("s00Suray2") << std::endl;
 	std::cout << myTest.isUserNameValid("sdsdwe") << std::endl;
@@ -38,17 +39,10 @@ int main()
 	{
 		cout << vectorName[i] << endl;
 	}
-<<<<<<< HEAD
-
-	*/
 
 	TriviaServer* myServer = new TriviaServer();
 	myServer->serve();
-
-
-=======
-*/
-//	                             5      5+x+2    5+x+2+y+2                  
+     //                       5      5+x+2    5+x+2+y+2                  
 	string msgInString = "20005suray04abcd10suray@wert";
 
 	cout << msgInString.substr(5, std::stoi(msgInString.substr(3, 2))) << endl;
@@ -57,12 +51,12 @@ int main()
 	int x = std::stoi(msgInString.substr(3, 2));
 	int y = std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2));
 	cout << msgInString.substr(5 + x + 2 + y + 2, std::stoi(msgInString.substr(5 + x + 2 + y, 2))) << endl;
-	/*
+	*/
+
 	TriviaServer* myServer = new TriviaServer();
 	myServer->serve();
-	*/
->>>>>>> ec96d19b5f553e1de8b3f8556850d1169171ca3b
-
+	
+	
 	system("pause");
 	return 0;
 }

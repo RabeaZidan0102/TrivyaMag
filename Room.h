@@ -27,6 +27,8 @@ public:
 	int getID();
 	string getName();
 	string getAdminName();
+	int getQuestionTime();
+	unsigned int getMaxUsersNumber();
 
 private:
 	//string getUsersAsString(vector<User*> usersVector, User* user);

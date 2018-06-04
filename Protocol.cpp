@@ -123,6 +123,11 @@ string Protocol::response118(Question * question, User* user, Room* room)
 {
 	stringstream res118;
 
+	if (question->getQuestion().length() == 0)
+	{
+		return "1180";
+	}
+
 	try
 	{
 		res118 << "118";
@@ -166,9 +171,8 @@ string Protocol::response121(vector<User*> users, DataBase DB)
 	return (res121.str());
 }
 
-void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)
+void Protocol::response124(SOCKET _socket, vector<string> top3_Scores)
 {
-	vector<string> top3_Scores = DB.getBestScores();
 	stringstream res124;
 
 	res124 << "124";
@@ -182,19 +186,19 @@ void Protocol::response124(vector<User*> users, SOCKET _socket, DataBase DB)
 	_myHelper.sendData(_socket, res124.str());
 }
 
-void Protocol::response126(User* user, SOCKET _socket, DataBase DB)
+void Protocol::response126(SOCKET _socket, vector<string> personalStatus)
 {
 	stringstream res126;
 	res126 << "126";
 	
-	if (DB.getPersonalStatus(user->getUsername())[0].length() > 0)
+	if (personalStatus[0].length() > 0)
 	{
-		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[0].length(), 4);
-		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[1].length(), 6);
-		res126 << _myHelper.getPaddedNumber(DB.getPersonalStatus(user->getUsername())[2].length(), 6);
+		res126 << _myHelper.getPaddedNumber(personalStatus[0].length(), 4);
+		res126 << _myHelper.getPaddedNumber(personalStatus[1].length(), 6);
+		res126 << _myHelper.getPaddedNumber(personalStatus[2].length(), 6);
 
-		res126 << _myHelper.getPaddedNumber((DB.getPersonalStatus(user->getUsername())[3]).substr(0, 1).length(), 2);
-		res126 << _myHelper.getPaddedNumber((DB.getPersonalStatus(user->getUsername())[3]).substr(2, 2).length(), 2);
+		res126 << _myHelper.getPaddedNumber((personalStatus[3]).substr(0, 1).length(), 2);
+		res126 << _myHelper.getPaddedNumber((personalStatus[3]).substr(2, 2).length(), 2);
 
 		_myHelper.sendData(_socket, res126.str());
 	}
