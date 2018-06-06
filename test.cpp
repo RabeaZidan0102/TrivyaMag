@@ -4,13 +4,17 @@
 #include <algorithm>
 #include "Room.h"
 #include "User.h"
-#include <WinSock2.h>
-#include <Windows.h>
+#include "TriviaServer.h"
 #include "Game.h"
 #include "TriviaServer.h"
+#include "WSAInitializer.h"
+#include <exception>
+
+using std::exception;
 
 int main()
-{/*
+{	
+	/*
 	Validator myTest;
 	std::cout << myTest.isPasswrodValid("s00Suray2") << std::endl;
 	std::cout << myTest.isUserNameValid("sdsdwe") << std::endl;
@@ -39,8 +43,10 @@ int main()
 	{
 		cout << vectorName[i] << endl;
 	}
-*/
-//	                             5      5+x+2    5+x+2+y+2                  
+
+	TriviaServer* myServer = new TriviaServer();
+	myServer->serve();
+     //                       5      5+x+2    5+x+2+y+2                  
 	string msgInString = "20005suray04abcd10suray@wert";
 
 	cout << msgInString.substr(5, std::stoi(msgInString.substr(3, 2))) << endl;
@@ -49,11 +55,19 @@ int main()
 	int x = std::stoi(msgInString.substr(3, 2));
 	int y = std::stoi(msgInString.substr(std::stoi(msgInString.substr(3, 2)) + 5, 2));
 	cout << msgInString.substr(5 + x + 2 + y + 2, std::stoi(msgInString.substr(5 + x + 2 + y, 2))) << endl;
-	/*
-	TriviaServer* myServer = new TriviaServer();
-	myServer->serve();
 	*/
 
-	system("pause");
+	try
+	{
+		WSAInitializer wsaInit;
+		TriviaServer* myServer = new TriviaServer();
+
+		myServer->serve();
+	}
+	catch (exception& e)
+	{
+		cout << "Error occured: " << e.what() << endl;
+	}
+	system("PAUSE");
 	return 0;
 }

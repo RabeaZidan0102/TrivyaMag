@@ -55,8 +55,8 @@ public:
 	string response118(Question* question, User* user, Room* room);
 	string response120(bool yesOrNot);
 	string response121(vector<User*> users, DataBase DB);
-	void response124(vector<User*> users, SOCKET _socket, DataBase DB);
-	void response126(User* user, SOCKET _socket, DataBase DB);
+	void response124(SOCKET _socket, vector<string> top3_Scores);
+	void response126(SOCKET _socket, vector<string> personalStatus);
 
 
 private:

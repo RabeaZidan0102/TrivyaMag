@@ -9,10 +9,12 @@
 #include <queue>
 #include "DataBase.h"
 #include <condition_variable>
+#include "Protocol.h"
 
 #define PORT 8820 
 #define BUFFER 4800
 #define MT_CLIENT_EXIT 299
+#define IFACE 0
 
 using std::string;
 using std::map;
@@ -41,7 +43,6 @@ enum MessageType : byte
 	MT_CLIENT_LEAVE_GAME = 222,
 	MT_CLIENT_GET_BEST_SCORE = 223,
 	MT_CLIENT_GET_PERSONAL_STATUS = 225,
-	//MT_CLIENT_EXIT = 299,
 };
 
 
@@ -58,7 +59,7 @@ private:
 
 	//functions
 	void bindAndListen();
-	void acceptClient();
+	void accept();
 	void clientHandler(SOCKET sock);
 	void safeDeleteUser(RecievedMessage* msg);
 
@@ -89,11 +90,11 @@ private:
 	Room* getRoomByID(int id);
 
 
-
 	// variables
 	SOCKET _socket;
 	map<SOCKET, User*> _connectedUsers;
 	map<SOCKET, User*>::iterator usersItr;
+	mutex _mtxUsers;
 
 	DataBase _db;
 
@@ -105,5 +106,7 @@ private:
 	condition_variable _msgCondition;
 	condition_variable _edited;
 
-	static int _roomIdSequence;
+	int _roomIdSequence;
+	
+	Protocol _Protocol;
 };

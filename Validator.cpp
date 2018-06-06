@@ -36,7 +36,7 @@ bool Validator::isUserNameValid(string username)
 
 	if (username.size() > 0 && isalpha(username[0]))
 	{
-		for (int i = 0; i < username.length(); i++)
+		for (unsigned int i = 0; i < username.length(); i++)
 		{
 			if (!isspace(username[i]))
 			{

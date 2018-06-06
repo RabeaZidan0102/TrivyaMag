@@ -80,7 +80,6 @@ string Room::getUserListMessage()
 	}
 
 	return(_Protocol.response108(this->getUsers(), error));
-
 }
 
 int Room::getQuestionNumber()
@@ -101,6 +100,16 @@ string Room::getName()
 string Room::getAdminName()
 {
 	return string(_admin->getUsername());
+}
+
+int Room::getQuestionTime()
+{
+	return _questionTime;
+}
+
+unsigned int Room::getMaxUsersNumber()
+{
+	return _maxUsers;
 }
 
 void Room::sendMessage(string message)

@@ -104,15 +104,15 @@ bool DataBase::addNewUser(string username, string password, string email)
 bool DataBase::isUserAndPassMatch(string username, string password)
 {
 	int rc;
-	bool returnedValue = false;
+	bool returnedValue = true;
 	stringstream getting;
 
 	getting << "select * from t_users WHERE username = " << username << " AND password = " << password;
-	rc = sqlite3_exec(_db, getting.str().c_str(), NULL, 0, &zErrMsg);
+	rc = sqlite3_exec(_db, getting.str().c_str(), callbackCount, 0, &zErrMsg);
 
 	if (rc == SQLITE_OK)
 	{
-		returnedValue = true;
+		returnedValue = false;
 	}
 
 	return returnedValue;
