@@ -57,6 +57,7 @@ int main()
 	cout << msgInString.substr(5 + x + 2 + y + 2, std::stoi(msgInString.substr(5 + x + 2 + y, 2))) << endl;
 	*/
 
+<<<<<<< HEAD
 	try
 	{
 		WSAInitializer wsaInit;
@@ -69,5 +70,12 @@ int main()
 		cout << "Error occured: " << e.what() << endl;
 	}
 	system("PAUSE");
+=======
+	TriviaServer* myServer = new TriviaServer();
+	myServer->serve();
+	
+	
+	system("pause");
+>>>>>>> 5c901d7ea43390eec86750a44579f9513b999315
 	return 0;
 }

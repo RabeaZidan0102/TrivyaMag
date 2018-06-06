@@ -71,8 +71,11 @@ void TriviaServer::bindAndListen()
 
 	if (::bind(_socket, (struct sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR)
 		throw std::exception(__FUNCTION__ " - bind");
+<<<<<<< HEAD
 
 	cout << "binded" << endl;
+=======
+>>>>>>> 5c901d7ea43390eec86750a44579f9513b999315
 
 	if (::listen(_socket, SOMAXCONN) == SOCKET_ERROR)
 		throw std::exception(__FUNCTION__ " - listen");
@@ -118,6 +121,20 @@ void TriviaServer::clientHandler(SOCKET sock)
 			this->addRecieveMessage(errorRcvMsg);
 			closesocket(sock);
 		}
+	}
+}
+
+void TriviaServer::safeDeleteUser(RecievedMessage * msg)
+{
+	try
+	{
+		SOCKET sock= msg->getSock();
+		this->handleSignout(msg);
+		closesocket(sock);
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
 	}
 }
 
@@ -427,6 +444,7 @@ void TriviaServer::handleGetPersonalStatus(RecievedMessage * msg)
 void TriviaServer::handleRecievedMessage()
 {
 	std::unique_lock<mutex> locker(_mtxRecievedMessages);
+<<<<<<< HEAD
 
 	if (_queRcvMessages.empty())
 	{
@@ -505,10 +523,90 @@ void TriviaServer::handleRecievedMessage()
 	{
 		cout << e.what() << endl;
 		this->safeDeleteUser(rcvMsg);
+=======
+	while (true)
+	{
+		if (_queRcvMessages.empty())
+		{
+			_msgCondition.wait(locker);
+		}
+
+		RecievedMessage* rcvMsg = _queRcvMessages.front();
+
+		try
+		{
+			switch (rcvMsg->getMessageCode())
+			{
+			case MT_CLIENT_SIGN_IN:
+				this->handleSignin(rcvMsg);
+				break;
+
+			case MT_CLIENT_SIGN_OUT:
+				this->handleSignout(rcvMsg);
+				break;
+
+			case MT_CLIENT_SIGN_UP:
+				this->handleSignup(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_ROOMS:
+				this->handleGetRooms(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_USERS_IN_ROOM:
+				this->handleGetUserslnRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_JOIN_ROOM:
+				this->handleJoinRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_LEAVE_ROOM:
+				this->handleLeaveRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_CREATE_ROOM:
+				this->handleCreateRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_CLOSE_ROOM:
+				this->handleCloseRoom(rcvMsg);
+				break;
+
+			case MT_CLIENT_START_GAME:
+				this->handleStartGame(rcvMsg);
+				break;
+
+			case MT_CLIENT_PLAYERS_ANSWER:
+				this->handlePlayerAnswer(rcvMsg);
+				break;
+
+			case MT_CLIENT_LEAVE_GAME:
+				this->handleLeaveGame(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_BEST_SCORE:
+				this->handleGetBestScore(rcvMsg);
+				break;
+
+			case MT_CLIENT_GET_PERSONAL_STATUS:
+				this->handleGetPersonalStatus(rcvMsg);
+				break;
+
+			default:
+				this->safeDeleteUser(rcvMsg);
+			}
+		}
+		catch (exception& e)
+		{
+			cout << e.what() << endl;
+			this->safeDeleteUser(rcvMsg);
+		}
+>>>>>>> 5c901d7ea43390eec86750a44579f9513b999315
 	}
 }
 
-void TriviaServer::addRecieveMessage(RecievedMessage * msg)
+	void TriviaServer::addRecieveMessage(RecievedMessage * msg)
 {
 	lock_guard<mutex> lck(_mtxRecievedMessages);
 	_queRcvMessages.push(msg);
@@ -560,7 +658,11 @@ RecievedMessage * TriviaServer::buildRecieveMessage(SOCKET sock, int msgCode)
 
 		RecievedMessage * msg = new RecievedMessage(sock, msgCode, parameters);
 		parameters.clear();
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 5c901d7ea43390eec86750a44579f9513b999315
 		return msg;
 	}
 
